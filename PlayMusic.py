@@ -7,8 +7,11 @@ Created on Fri Aug  2 09:14:57 2024
 @author: Administrator
 """
 
+import argparse
 import os
 import random
+import subprocess
+import sys
 import time
 import pygame
 import platform
@@ -39,6 +42,37 @@ def traceerror(exc: Exception):
     """Log exceptions with a traceback so the script can run standalone."""
     print(f"發生未預期的錯誤：{exc}")
     traceback.print_exc()
+
+
+def start_background():
+    """Launch the player in a detached background process."""
+    python_exec = sys.executable
+    script_path = os.path.abspath(__file__)
+    log_path = os.path.join(os.path.dirname(script_path), "playmusic.log")
+
+    log_file = open(log_path, "a", buffering=1)
+
+    popen_kwargs = {
+        "stdout": log_file,
+        "stderr": log_file,
+        "close_fds": True,
+    }
+
+    if os.name == "nt":  # Windows
+        creationflags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+        creationflags |= getattr(subprocess, "DETACHED_PROCESS", 0)
+        popen_kwargs["creationflags"] = creationflags
+    else:  # POSIX systems
+        popen_kwargs["start_new_session"] = True
+
+    try:
+        subprocess.Popen([python_exec, script_path, "--run-service"], **popen_kwargs)
+        print(f"背景播放程式已啟動，日誌輸出到 {log_path}")
+    except Exception as exc:
+        print(f"無法啟動背景程式：{exc}")
+        traceerror(exc)
+    finally:
+        log_file.close()
 
 # 根據作業系統設定音樂來源路徑
 def get_music_source():
@@ -213,18 +247,52 @@ def show_system_info():
         elif system == "Windows":
             print("提示: Windows 系統請確認 E:/家庭音樂/ 目錄存在並包含音樂檔案")
 
-if __name__ == "__main__":
+def run_player():
+    """Run the player in the foreground."""
     print("Python 跨平台音樂播放器")
     print("=" * 40)
-    
+
     show_system_info()
     print()
-    
+
     if not check_dependencies():
         print("請安裝缺少的套件後重新執行")
-        exit(1)
-    
+        sys.exit(1)
+
     print()
     init()
     PlayByHalfHour()
-    
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="跨平台定時音樂播放器")
+    parser.add_argument(
+        "--daemon",
+        action="store_true",
+        help="以背景模式啟動，輸出記錄到 playmusic.log",
+    )
+    parser.add_argument(
+        "--run-service",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+
+    if args.daemon:
+        start_background()
+        return
+
+    # 背景模式下由 start_background() 帶入 --run-service 參數，避免重複啟動
+    if args.run_service:
+        run_player()
+        return
+
+    run_player()
+
+
+if __name__ == "__main__":
+    main()
