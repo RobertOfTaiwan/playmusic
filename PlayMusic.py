@@ -47,7 +47,7 @@ def get_music_source():
         return "E:/家庭音樂/"
     else:  # Linux/Ubuntu
         home_dir = os.path.expanduser("~")
-        return os.path.join(home_dir, "LionE/OneDrive/亦行居/家庭音樂/")
+        return os.path.join(home_dir, "LionE/家庭音樂/")
 
 MU_Source = get_music_source()
 MU_List = []   # 所有歌曲列表
