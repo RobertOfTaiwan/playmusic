@@ -1,97 +1,58 @@
 # Python 跨平台音樂播放器
 
-一個支援 Windows 和 Ubuntu 的定時音樂播放器，每半小時自動播放一首音樂。
+這是一個使用 `pygame` 播放器實作的跨平台定時音樂播放程式。內建每半小時檢查一次，當時間落在允許區間時，會從音樂資料夾中隨機挑選歌曲播放，避免重複播放。額外提供背景執行模式，可在幕後持續服務並輸出日誌。
 
-## 系統需求
+## 環境需求
 
-- Python 3.6 或更高版本
-- pygame 套件
-- 其他依賴套件 (詳見 requirements.txt)
+- Python 3.8 或以上
+- `pygame` 套件（請確認系統音效元件已啟用）
 
-## 安裝
+安裝依賴：
 
-### Windows
 ```bash
 pip install -r requirements.txt
 ```
 
-### Ubuntu
-```bash
-# 安裝系統依賴
-sudo apt update
-sudo apt install python3-pygame python3-pip portaudio19-dev
+## 音樂來源
 
-# 安裝 Python 套件
-pip3 install -r requirements.txt
-```
+程式會依據作業系統挑選預設路徑：
 
-## 使用方法
+- Windows：`E:/家庭音樂/`
+- Linux / Ubuntu：`~/LionE/OneDrive/亦行居/家庭音樂/`
 
-### 音樂目錄設定
+可直接編輯 `PlayMusic.py` 中的 `get_music_source()` 以指向自訂資料夾，程式會遞迴尋找資料夾內的 `mp3/wav/ogg/m4a/flac/aac` 檔案。
 
-程式會根據作業系統自動選擇音樂目錄：
+## 執行方式
 
-- **Windows**: `E:/家庭音樂/`
-- **Ubuntu**: `~/Music/` (使用者主目錄下的 Music 資料夾)
-
-請確保對應目錄存在並包含音樂檔案。
-
-### 支援的音檔格式
-
-- MP3
-- WAV
-- OGG
-- M4A
-- FLAC
-- AAC
-
-### 執行程式
+### 前景執行
 
 ```bash
-python PlayMusic.py
+python3 PlayMusic.py
 ```
 
-## 功能特色
+終端機會顯示檢查結果並即時輸出播放狀態，按 `Ctrl + C` 可以結束服務。
 
-- **跨平台支援**: 自動偵測作業系統並調整設定
-- **定時播放**: 每半小時 (整點和半點) 自動播放一首音樂
-- **時間控制**: 可設定允許播放的時間段 (預設 08:00-17:00 和 19:00-22:00)
-- **隨機播放**: 避免重複播放同一首歌曲
-- **錯誤處理**: 完善的錯誤處理和系統檢查
+### 背景執行
 
-## 設定
+```bash
+python3 PlayMusic.py --daemon
+```
 
-### 修改播放時間
+- 會啟動一個新的背景行程執行播放器。 
+- 所有輸出會寫入專案根目錄的 `playmusic.log`。
+- 若需停止服務，請尋找並結束對應的 Python 行程（例如 `pkill -f PlayMusic.py` 或使用 Windows 工作管理員）。
 
-編輯 `PlayMusic.py` 中的 `MU_PlayTime` 變數：
+## 使用建議
+
+1. 首次啟動前確認音樂資料夾存在且包含檔案。
+2. 若需調整播放時段，可修改 `MU_PlayTime` 常數，例如：
 
 ```python
-MU_PlayTime = [("08:00", "17:00"), ("19:00", "22:00")]
+MU_PlayTime = [("07:30", "12:00"), ("13:30", "22:30")]
 ```
 
-### 修改音樂目錄
-
-如需自訂音樂目錄，可修改 `get_music_source()` 函數。
-
-## 疑難排解
-
-### Ubuntu 音效問題
-
-如果在 Ubuntu 上遇到音效問題，請嘗試：
-
-```bash
-# 安裝額外的音效套件
-sudo apt install pulseaudio alsa-utils
-
-# 重新啟動音效服務
-pulseaudio --kill
-pulseaudio --start
-```
-
-### 權限問題
-
-確保程式對音樂目錄有讀取權限。
+3. 背景模式會使用 `playmusic.log` 追蹤狀態，可定期清除檔案以避免過大。
 
 ## 授權
 
-此專案僅供學習和個人使用。
+此專案僅供個人或內部使用，請勿商業散佈。
