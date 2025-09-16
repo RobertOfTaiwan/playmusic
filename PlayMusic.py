@@ -7,12 +7,38 @@ Created on Fri Aug  2 09:14:57 2024
 @author: Administrator
 """
 
-import o3base
 import os
 import random
 import time
 import pygame
 import platform
+import traceback
+
+
+def wait(seconds, show_dot=False, dot_period=5):
+    """Wait for ``seconds`` seconds and optionally print dots while waiting."""
+    start_time = time.time()
+    next_dot = dot_period if dot_period > 0 else None
+
+    try:
+        while True:
+            elapsed = time.time() - start_time
+            if elapsed >= seconds:
+                return elapsed
+
+            if show_dot and next_dot is not None and elapsed >= next_dot:
+                print(".", end="", flush=True)
+                next_dot += dot_period
+
+            time.sleep(0.1)
+    except KeyboardInterrupt:
+        return -1
+
+
+def traceerror(exc: Exception):
+    """Log exceptions with a traceback so the script can run standalone."""
+    print(f"發生未預期的錯誤：{exc}")
+    traceback.print_exc()
 
 # 根據作業系統設定音樂來源路徑
 def get_music_source():
@@ -21,7 +47,7 @@ def get_music_source():
         return "E:/家庭音樂/"
     else:  # Linux/Ubuntu
         home_dir = os.path.expanduser("~")
-        return os.path.join(home_dir, "Music/")
+        return os.path.join(home_dir, "LionE/OneDrive/亦行居/家庭音樂/")
 
 MU_Source = get_music_source()
 MU_List = []   # 所有歌曲列表
@@ -110,7 +136,7 @@ def play(nIdx=None):
         pygame.mixer.music.play()
     except Exception as e:
         print(f"播放錯誤: {e}")
-        o3base.traceerror(e)
+        traceerror(e)
 
     return(None)
 
@@ -151,7 +177,7 @@ def PlayByHalfHour():
             else:
                 print("\n今日日期:{}，目前時間:{}。".format(cDay, cTime))
                 
-        if o3base.wait(60, lShowDot=True, nDotPeriod=10) < 0: # 等待 1 分鐘
+        if wait(60, show_dot=True, dot_period=10) < 0: # 等待 1 分鐘
             print("感謝聆聽.....")
             break
 
@@ -166,13 +192,6 @@ def check_dependencies():
     except ImportError:
         print("✗ 缺少 pygame 套件")
         print("請執行: pip install pygame")
-        return False
-    
-    try:
-        import o3base
-        print("✓ o3base 模組已載入")
-    except ImportError:
-        print("✗ 無法載入 o3base 模組")
         return False
     
     return True
