@@ -18,7 +18,7 @@ pip install -r requirements.txt
 程式會依據作業系統挑選預設路徑：
 
 - Windows：`E:/家庭音樂/`
-- Linux / Ubuntu：`~/LionE/OneDrive/亦行居/家庭音樂/`
+- Linux / Ubuntu：`~/LionE/家庭音樂/`
 
 可直接編輯 `PlayMusic.py` 中的 `get_music_source()` 以指向自訂資料夾，程式會遞迴尋找資料夾內的 `mp3/wav/ogg/m4a/flac/aac` 檔案。
 
